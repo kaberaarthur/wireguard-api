@@ -211,9 +211,7 @@ app.get('/list', checkToken, (req, res) => {
   });
 });
 
-function generateRouterOsRsc({ port, clientPriv, clientPub, clientIp, serverPub, serverEndpoint }) {
-  // We configure the MikroTik WireGuard client. Note we set persistent-keepalive to 25.
-  // Also we do not force full 0.0.0.0/0 routing by default (commented), but you can uncomment if you want to route everything.
+function generateRouterOsRsc({ port, clientPriv, clientPub, clientIp, serverPub }) {
   return `
 # RouterOS script created by wireguard-api
 /interface wireguard
@@ -222,7 +220,6 @@ add name=wg-${port} private-key="${clientPriv}" listen-port=0
 /ip address
 add address=${clientIp}/32 interface=wg-${port}
 
-# add server as peer
 /interface wireguard peers
 add interface=wg-${port} public-key="${serverPub}" endpoint-address=${PUBLIC_IP} endpoint-port=${LISTEN_PORT} persistent-keepalive=25 allowed-address=10.0.0.1/32
 
@@ -230,6 +227,7 @@ add interface=wg-${port} public-key="${serverPub}" endpoint-address=${PUBLIC_IP}
 # /ip route add dst-address=0.0.0.0/0 gateway=10.0.0.1
 `;
 }
+
 
 // start server
 const HTTP_PORT = process.env.HTTP_PORT || 3000;
