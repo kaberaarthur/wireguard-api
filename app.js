@@ -5,6 +5,7 @@ const sqlite3 = require('sqlite3').verbose();
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config();
 
 const app = express();
 app.use(bodyParser.json());
@@ -105,13 +106,17 @@ function deleteIptablesRules(publicPort, clientIp) {
 // API middleware: token auth (simple)
 function checkToken(req, res, next) {
   const token = req.query.token || req.headers['x-api-token'] || (req.body && req.body.token);
+
+  console.log('API Token received:', token);
+  console.log('Expected Token:', API_TOKEN);
+
   if (!token || token !== API_TOKEN) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   next();
 }
 
-app.get('/', (req, res) => {
+app.get('/', checkToken, (req, res) => {
   res.send('WireGuard API is running. Use /create, /remove, /list endpoints with token.');
 });
 
@@ -229,6 +234,6 @@ add interface=wg-${port} public-key="${serverPub}" endpoint-address=${PUBLIC_IP}
 // start server
 const HTTP_PORT = process.env.HTTP_PORT || 3000;
 app.listen(HTTP_PORT, () => {
-  console.log(`WireGuard API listening on 0.0.0.0:${HTTP_PORT}`);
+  console.log(`WireGuard API listening on http://localhost:${HTTP_PORT}`);
   console.log(`Use token via ?token=... or header X-API-TOKEN`);
 });
